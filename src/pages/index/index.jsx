@@ -51,19 +51,21 @@ export default function Index() {
     }
   }
 
-  const onProductViewScroll = ({scrollOffset, scrollUpdateWasRequested}) => {
-    console.log('scrollUpdateWasRequested: ', scrollUpdateWasRequested);
-    console.log(11);
+  const onProductViewScroll = ({scrollOffset, scrollUpdateWasRequested, scrollDirection}) => {
     let sum = 0
+    // 找出当前滚动的位置在哪个分组
     let index = curScrollRef.current.prodlistlengList.findIndex(item => {
       sum += item.size;
       return sum > scrollOffset;
     });
+
+    console.log('sum: ', sum, scrollOffset);
     if (index !== -1 && productMenuList[index].groupId !== curGroupId) {
       setcurGroupId(productMenuList[index].groupId)
     }
   }
 
+  //当往上滚再往下滚的时候 会有bug
   const onLeftGroupNameClick = (id) => {
     // 找出id 在数组中的位置
     const index = productMenuList.findIndex(item => item.groupId === id)
@@ -73,14 +75,11 @@ export default function Index() {
         sum += item.leng * 100 + 20
       }
     })
-    console.log('sum: ', sum);
-    virtualRef.current.scrollTo(sum + 1)
-    // setcurGroupId(id)
-
+    // 目前确认点击时会触发onscorll事件  其中scrollOffset的值有小数点有时候不能直接命中对应id的值
+    // 例如 分组3 的sum是2980  但是scrollOffset只滚动到了2879.78979482.. 此时就无法命中对应di 需要加多一个偏移量
+    virtualRef.current.scrollTo(sum + 5)
+    // virtualRef.current.scrollTo(sum)
   }
-
-
-
 
   const Row = ({id, index, data}) => {
     return <View className={styles.menu_right_list_item} key={id} >
@@ -129,6 +128,7 @@ export default function Index() {
             className={styles.menu_content}
             scrollY={true}
             item={Row}
+            height={'90vh'}
             enhanced
             itemData={productMenuList.reduce((a, b) => a.concat(b.productList), [])}
             itemCount={productMenuList.reduce((a, b) => a + b.productList.length, 0)}
