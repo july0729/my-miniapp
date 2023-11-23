@@ -25,7 +25,6 @@ const generateList = (length) => {
   return list;
 };
 
-
 export default function Index() {
 
   const [productMenuList, setProductMenuList] = useState(generateList(10))
@@ -65,7 +64,6 @@ export default function Index() {
     }
   }
 
-  //当往上滚再往下滚的时候 会有bug
   const onLeftGroupNameClick = (id) => {
     // 找出id 在数组中的位置
     const index = productMenuList.findIndex(item => item.groupId === id)
@@ -76,13 +74,13 @@ export default function Index() {
       }
     })
     // 目前确认点击时会触发onscorll事件  其中scrollOffset的值有小数点有时候不能直接命中对应id的值
-    // 例如 分组3 的sum是2980  但是scrollOffset只滚动到了2879.78979482.. 此时就无法命中对应di 需要加多一个偏移量
-    virtualRef.current.scrollTo(sum + 5)
-    // virtualRef.current.scrollTo(sum)
+    // 例如 分组3 的sum是2980  但是scrollOffset只滚动到 了2879.78979482.. 此时就无法命中对应di 需要加多一个偏移量
+    // 支付宝 scrollTo的第二个参数一定要写为false
+    virtualRef.current.scrollTo(sum + 5, process.env.TARO_ENV === 'alipay' ? false : true)
   }
 
   const Row = ({id, index, data}) => {
-    return <View className={styles.menu_right_list_item} key={id} >
+    return <View className={styles.menu_right_list_item} key={data[index].id} id={id}>
       {data[index].id.split('-')[1] === "1" && <Text className="product-right-item-title" style={{fontWeight: 'bold', lineHeight: '20px'}}>{data[index].groupName}</Text>}
       <View className={styles.menu_right_item} >
         <Image mode='aspectFill' src={data[index].imgUrl} style={{width: '150rpx', height: '150rpx', borderRadius: '5rpx'}}></Image>
@@ -109,40 +107,42 @@ export default function Index() {
     </View>
   }
 
+
   return (
     <View className={styles.take_out_menu_list}>
-      {productMenuList.length !== 0 ?
-        <View style={{display: 'flex', height: '90vh', width: '100vw'}}>
-          {/* 左列菜单栏 */}
-          <ScrollView className={styles.menu_column} scrollY={true} scrollWithAnimation={true} >
-            {productMenuList.map((item) => {
-              return <View className={styles.menu_bar_item} style={{backgroundColor: curGroupId === item.groupId ? '#fff' : ''}} onClick={() => onLeftGroupNameClick(item.groupId)}>
-                {curGroupId === item.groupId && <Text className={styles.circle} />}
-                <Text className={styles.group_name} > {item.groupName} </Text>
-              </View>
-            })}
-          </ScrollView>
-          {/* 右列菜品 */}
-          <VirtualList
-            ref={virtualRef}
-            className={styles.menu_content}
-            scrollY={true}
-            item={Row}
-            height={'90vh'}
-            enhanced
-            itemData={productMenuList.reduce((a, b) => a.concat(b.productList), [])}
-            itemCount={productMenuList.reduce((a, b) => a + b.productList.length, 0)}
-            itemSize={(index, itemData) => {
-              if (itemData && itemData[index].id.split('-')[1] === "1") {
-                return 100 + 20
-              }
-              return 100
-            }}
-            onScroll={onProductViewScroll}
-            renderBottom={<View style={{height: '100%', backgroundColor: 'red'}}>已经到底了～～</View>}
-          />
-        </View>
-        : '暂无数据11'}
+      {/* {productMenuList.length !== 0 ? */}
+      <View style={{display: 'flex', height: '90vh', width: '100vw'}}>
+        {/* 左列菜单栏 */}
+        <ScrollView className={styles.menu_column} scrollY={true} scrollWithAnimation={true} >
+          {productMenuList.map((item) => {
+            return <View className={styles.menu_bar_item} style={{backgroundColor: curGroupId === item.groupId ? '#fff' : ''}} onClick={() => onLeftGroupNameClick(item.groupId)}>
+              {curGroupId === item.groupId && <Text className={styles.circle} />}
+              <Text className={styles.group_name} > {item.groupName} </Text>
+            </View>
+          })}
+        </ScrollView>
+        {/* 右列菜品 */}
+        <VirtualList
+          ref={virtualRef}
+          className={styles.menu_content}
+          scrollY={true}
+          item={Row}
+          height={process.env.TARO_ENV === 'alipay' ? 800 : '90vh'}   //支付宝需要设置为数字  微信支持’90vh‘
+          enhanced={process.env.TARO_ENV === 'alipay' ? false : true}     //支付宝需要关闭
+          itemData={productMenuList.reduce((a, b) => a.concat(b.productList), [])}
+          itemCount={productMenuList.reduce((a, b) => a + b.productList.length, 0)}
+          itemSize={(index, itemData) => {
+            if (itemData && itemData[index].id.split('-')[1] === "1") {
+              return 100 + 20
+            }
+            return 100
+          }}
+          onScroll={onProductViewScroll}
+          renderBottom={<View style={{height: '100%', backgroundColor: 'red'}}>已经到底了～～</View>}
+        />
+      </View>
+      {/* : '暂无数据11'} */}
     </View>
   )
 }
+
