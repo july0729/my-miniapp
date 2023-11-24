@@ -158,6 +158,17 @@
   height: calc(100% - 220rpx); //一个菜品盒子的容器大小220rpx
 }
 
+.render_top {
+  position: fixed;
+  top: 0;
+  left: 240rpx;
+  z-index: 9999;
+  height: 66rpx;
+  line-height: 66rpx;
+  background-color: #fff;
+  width: calc(100vw - 240rpx);
+}
+
 
 
 

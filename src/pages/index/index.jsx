@@ -28,14 +28,14 @@ const generateList = (length) => {
 export default function Index() {
 
   const [productMenuList, setProductMenuList] = useState(generateList(10))
-  const [curGroupId, setcurGroupId] = useState(null)
+  const [curGroupId, setcurGroupId] = useState({id: '', groupName: ''})
   const virtualRef = useRef(null)
   const curScrollRef = useRef({
     prodlistlengList: []   //分组的商品数量和高度
   })
 
   useEffect(() => {
-    setcurGroupId(productMenuList[0].groupId)
+    setcurGroupId({id: productMenuList[0].groupId, groupName: productMenuList[0].groupName})
     getProduceMenulist()
   }, [])
 
@@ -59,8 +59,8 @@ export default function Index() {
     });
 
     console.log('sum: ', sum, scrollOffset);
-    if (index !== -1 && productMenuList[index].groupId !== curGroupId) {
-      setcurGroupId(productMenuList[index].groupId)
+    if (index !== -1 && productMenuList[index].groupId !== curGroupId.id) {
+      setcurGroupId({id: productMenuList[index].groupId, groupName: productMenuList[index].groupName})
     }
   }
 
@@ -115,8 +115,8 @@ export default function Index() {
         {/* 左列菜单栏 */}
         <ScrollView className={styles.menu_column} scrollY={true} scrollWithAnimation={true} >
           {productMenuList.map((item) => {
-            return <View className={styles.menu_bar_item} style={{backgroundColor: curGroupId === item.groupId ? '#fff' : ''}} onClick={() => onLeftGroupNameClick(item.groupId)}>
-              {curGroupId === item.groupId && <Text className={styles.circle} />}
+            return <View className={styles.menu_bar_item} style={{backgroundColor: curGroupId.id === item.groupId ? '#fff' : ''}} onClick={() => onLeftGroupNameClick(item.groupId)}>
+              {curGroupId.id === item.groupId && <Text className={styles.circle} />}
               <Text className={styles.group_name} > {item.groupName} </Text>
             </View>
           })}
@@ -138,6 +138,7 @@ export default function Index() {
             return 100
           }}
           onScroll={onProductViewScroll}
+          renderTop={<View className={styles.render_top}>{'----' + curGroupId.groupName + '----'}</View>}
           renderBottom={<View style={{height: '100%', backgroundColor: 'red'}}>已经到底了～～</View>}
         />
       </View>
