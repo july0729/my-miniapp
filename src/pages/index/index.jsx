@@ -17,7 +17,7 @@ const generateList = (length) => {
       salePrice: '12.00',
     }));
     list.push({
-      groupId: i + 1,
+      groupId: 'A' + (i + 1),
       groupName: `分组${i + 1}-${productListLength}`,
       productList,
     });
@@ -29,6 +29,7 @@ export default function Index() {
 
   const [productMenuList, setProductMenuList] = useState(generateList(10))
   const [curGroupId, setcurGroupId] = useState({id: '', groupName: ''})
+  const [scrollTop, setScrollTop] = useState(0)
   const virtualRef = useRef(null)
   const curScrollRef = useRef({
     prodlistlengList: []   //分组的商品数量和高度
@@ -58,10 +59,12 @@ export default function Index() {
       return sum > scrollOffset;
     });
 
-    console.log('sum: ', sum, scrollOffset);
     if (index !== -1 && productMenuList[index].groupId !== curGroupId.id) {
       setcurGroupId({id: productMenuList[index].groupId, groupName: productMenuList[index].groupName})
     }
+
+    //  超过5个时才滚动 小于5时滚到顶部
+    setScrollTop((index - 5) * 100)
   }
 
   const onLeftGroupNameClick = (id) => {
@@ -77,6 +80,7 @@ export default function Index() {
     // 例如 分组3 的sum是2980  但是scrollOffset只滚动到 了2879.78979482.. 此时就无法命中对应di 需要加多一个偏移量
     // 支付宝 scrollTo的第二个参数一定要写为false
     virtualRef.current.scrollTo(sum + 5, process.env.TARO_ENV === 'alipay' ? false : true)
+
   }
 
   const Row = ({id, index, data}) => {
@@ -110,39 +114,45 @@ export default function Index() {
 
   return (
     <View className={styles.take_out_menu_list}>
-      {/* {productMenuList.length !== 0 ? */}
-      <View style={{display: 'flex', height: '90vh', width: '100vw'}}>
-        {/* 左列菜单栏 */}
-        <ScrollView className={styles.menu_column} scrollY={true} scrollWithAnimation={true} >
-          {productMenuList.map((item) => {
-            return <View className={styles.menu_bar_item} style={{backgroundColor: curGroupId.id === item.groupId ? '#fff' : ''}} onClick={() => onLeftGroupNameClick(item.groupId)}>
-              {curGroupId.id === item.groupId && <Text className={styles.circle} />}
-              <Text className={styles.group_name} > {item.groupName} </Text>
-            </View>
-          })}
-        </ScrollView>
-        {/* 右列菜品 */}
-        <VirtualList
-          ref={virtualRef}
-          className={styles.menu_content}
-          scrollY={true}
-          item={Row}
-          height={process.env.TARO_ENV === 'alipay' ? 800 : '90vh'}   //支付宝需要设置为数字  微信支持’90vh‘
-          enhanced={process.env.TARO_ENV === 'alipay' ? false : true}     //支付宝需要关闭
-          itemData={productMenuList.reduce((a, b) => a.concat(b.productList), [])}
-          itemCount={productMenuList.reduce((a, b) => a + b.productList.length, 0)}
-          itemSize={(index, itemData) => {
-            if (itemData && itemData[index].id.split('-')[1] === "1") {
-              return 100 + 20
-            }
-            return 100
-          }}
-          onScroll={onProductViewScroll}
-          renderTop={<View className={styles.render_top}>{'----' + curGroupId.groupName + '----'}</View>}
-          renderBottom={<View style={{height: '100%', backgroundColor: 'red'}}>已经到底了～～</View>}
-        />
-      </View>
-      {/* : '暂无数据11'} */}
+      {productMenuList.length !== 0 ?
+        <View style={{display: 'flex', height: '40vh', width: '100vw'}}>
+          {/* 左列菜单栏 */}
+          <ScrollView
+            className={styles.menu_column}
+            scrollY={true}
+            scrollWithAnimation={true}
+            showScrollbar={false}   //隐藏滚动条
+            scrollTop={scrollTop}   //Y轴滚动的距离
+          >
+            {productMenuList.map((item) => {
+              return <View className={styles.menu_bar_item} key={item.groupId} style={{backgroundColor: curGroupId.id === item.groupId ? '#fff' : ''}} onClick={() => onLeftGroupNameClick(item.groupId)}>
+                {curGroupId.id === item.groupId && <Text className={styles.circle} />}
+                <Text className={styles.group_name} > {item.groupName} </Text>
+              </View>
+            })}
+          </ScrollView>
+          {/* 右列菜品 */}
+          <VirtualList
+            ref={virtualRef}
+            className={styles.menu_content}
+            scrollY={true}
+            item={Row}
+            height={process.env.TARO_ENV === 'alipay' ? 800 : '40vh'}   //支付宝需要设置为数字  微信支持’90vh‘
+            enhanced={process.env.TARO_ENV === 'alipay' ? false : true}     //支付宝需要关闭
+            itemData={productMenuList.reduce((a, b) => a.concat(b.productList), [])}
+            itemCount={productMenuList.reduce((a, b) => a + b.productList.length, 0)}
+            itemSize={(index, itemData) => {
+              if (itemData && itemData[index].id.split('-')[1] === "1") {
+                return 100 + 20
+              }
+              return 100
+            }}
+            onScroll={onProductViewScroll}
+            renderTop={<View className={styles.render_top}>{'----' + curGroupId.groupName + '----'}</View>}
+            renderBottom={<View style={{height: '100%', backgroundColor: 'red'}}>已经到底了～～</View>}
+          />
+        </View>
+        : '暂无数据11'}
     </View>
   )
 }
