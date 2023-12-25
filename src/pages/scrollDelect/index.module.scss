@@ -1,0 +1,27 @@
+.root {
+
+  .content_box {
+    width: calc(100vw + 180px);
+    height: 150rpx;
+    position: relative;
+
+    .content {
+      width: 100vw;
+      height: 100%;
+      background-color: pink;
+    }
+
+    .del {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 180px;
+      height: 100%;
+      background-color: red;
+    }
+
+
+  }
+
+
+}
